@@ -61,6 +61,30 @@ function validateSelectedFile() {
   return true;
 }
 
+// heic2any의 Blob 또는 Blob[] 반환값을 하나의 PNG Blob으로 정규화합니다.
+function normalizePngBlob(result) {
+  const pngBlob = Array.isArray(result) ? result[0] : result;
+  if (!(pngBlob instanceof Blob)) throw new Error('PNG Blob을 생성하지 못했습니다.');
+  return pngBlob;
+}
+
+// File을 우선 그대로 전달하고, 입력 오류가 발생한 경우에만 ArrayBuffer 기반 Blob으로 재시도합니다.
+async function convertToPng(file) {
+  if (typeof window.heic2any !== 'function') {
+    throw new Error('heic2any 라이브러리를 사용할 수 없습니다.');
+  }
+
+  try {
+    const result = await window.heic2any({ blob: file, toType: 'image/png' });
+    return normalizePngBlob(result);
+  } catch (error) {
+    const arrayBuffer = await file.arrayBuffer();
+    const blob = new Blob([arrayBuffer], { type: file.type || 'image/heic' });
+    const result = await window.heic2any({ blob, toType: 'image/png' });
+    return normalizePngBlob(result);
+  }
+}
+
 // 이전 변환 결과와 다운로드용 Object URL을 정리합니다.
 function resetConversionState() {
   if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -122,8 +146,31 @@ removeButton.addEventListener('click', resetFile);
 }));
 dropZone.addEventListener('drop', (event) => setFile(event.dataTransfer.files[0]));
 
-// 현재는 변환 단계가 연결되기 전이므로 준비 상태 메시지만 표시합니다.
-convertButton.addEventListener('click', () => {
+// 선택한 HEIC 파일을 PNG Blob으로 변환하고 다운로드용 Object URL을 준비합니다.
+convertButton.addEventListener('click', async () => {
+  if (isConverting) return;
   if (!validateSelectedFile()) return;
-  statusMessage.textContent = '변환 기능을 연결하는 중이에요. 다음 단계에서 실제 PNG를 생성합니다.';
+
+  const fileAtStart = selectedFile;
+  resetConversionState();
+  isConverting = true;
+  convertButton.disabled = true;
+  statusMessage.textContent = 'PNG로 변환하는 중이에요.';
+
+  try {
+    const pngBlob = await convertToPng(fileAtStart);
+    if (selectedFile !== fileAtStart) return;
+    convertedBlob = pngBlob;
+    objectUrl = URL.createObjectURL(pngBlob);
+    statusMessage.textContent = 'PNG 변환이 완료됐어요.';
+  } catch (error) {
+    if (selectedFile !== fileAtStart) return;
+    errorMessage.textContent = '파일을 PNG로 변환하지 못했어요.';
+    statusMessage.textContent = '다른 파일을 선택해 다시 시도해 주세요.';
+  } finally {
+    if (selectedFile === fileAtStart) {
+      isConverting = false;
+      convertButton.disabled = false;
+    }
+  }
 });
