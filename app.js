@@ -41,6 +41,26 @@ function isSupported(file) {
   return allowedExtensions.includes(extension);
 }
 
+// 변환 전에 파일 존재 여부, 확장자, 크기를 순서대로 검증합니다.
+function getFileValidationError(file) {
+  if (!file) return '변환할 파일을 먼저 선택해 주세요.';
+  if (!isSupported(file)) return 'HEIC 또는 HEIF 파일만 업로드할 수 있어요.';
+  if (file.size > MAX_FILE_SIZE) return '파일 크기는 20MB 이하만 업로드할 수 있어요.';
+  return '';
+}
+
+// 검증 실패 시 변환 버튼과 오류 메시지를 함께 갱신합니다.
+function validateSelectedFile() {
+  const validationError = getFileValidationError(selectedFile);
+  if (validationError) {
+    convertButton.disabled = true;
+    errorMessage.textContent = validationError;
+    return false;
+  }
+  errorMessage.textContent = '';
+  return true;
+}
+
 // 이전 변환 결과와 다운로드용 Object URL을 정리합니다.
 function resetConversionState() {
   if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -64,14 +84,10 @@ function setFile(file) {
   errorMessage.textContent = '';
   if (!file) return;
   resetConversionState();
-  if (!isSupported(file)) {
+  const validationError = getFileValidationError(file);
+  if (validationError) {
     resetFile();
-    errorMessage.textContent = 'HEIC 또는 HEIF 파일만 업로드할 수 있어요.';
-    return;
-  }
-  if (file.size > MAX_FILE_SIZE) {
-    resetFile();
-    errorMessage.textContent = '파일 크기는 20MB 이하만 업로드할 수 있어요.';
+    errorMessage.textContent = validationError;
     return;
   }
   selectedFile = file;
@@ -108,6 +124,6 @@ dropZone.addEventListener('drop', (event) => setFile(event.dataTransfer.files[0]
 
 // 현재는 변환 단계가 연결되기 전이므로 준비 상태 메시지만 표시합니다.
 convertButton.addEventListener('click', () => {
-  if (!selectedFile) return;
+  if (!validateSelectedFile()) return;
   statusMessage.textContent = '변환 기능을 연결하는 중이에요. 다음 단계에서 실제 PNG를 생성합니다.';
 });
