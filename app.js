@@ -85,6 +85,16 @@ async function convertToPng(file) {
   }
 }
 
+// 변환된 PNG Blob URL을 브라우저 다운로드로 전달합니다.
+function downloadPng(url, originalFileName) {
+  const downloadLink = document.createElement('a');
+  downloadLink.href = url;
+  downloadLink.download = originalFileName.replace(/\.(heic|heif)$/i, '.png');
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  downloadLink.remove();
+}
+
 // 이전 변환 결과와 다운로드용 Object URL을 정리합니다.
 function resetConversionState() {
   if (objectUrl) URL.revokeObjectURL(objectUrl);
@@ -148,23 +158,25 @@ dropZone.addEventListener('drop', (event) => setFile(event.dataTransfer.files[0]
 
 // 선택한 HEIC 파일을 PNG Blob으로 변환하고 다운로드용 Object URL을 준비합니다.
 convertButton.addEventListener('click', async () => {
-  if (isConverting) return;
+  if (!selectedFile || isConverting) return;
   if (!validateSelectedFile()) return;
 
   const fileAtStart = selectedFile;
   resetConversionState();
   isConverting = true;
   convertButton.disabled = true;
-  statusMessage.textContent = 'PNG로 변환하는 중이에요.';
+  statusMessage.textContent = '변환 중...';
 
   try {
     const pngBlob = await convertToPng(fileAtStart);
     if (selectedFile !== fileAtStart) return;
     convertedBlob = pngBlob;
     objectUrl = URL.createObjectURL(pngBlob);
+    downloadPng(objectUrl, fileAtStart.name);
     statusMessage.textContent = 'PNG 변환이 완료됐어요.';
   } catch (error) {
     if (selectedFile !== fileAtStart) return;
+    console.error('HEIC to PNG 변환 실패:', error);
     errorMessage.textContent = '파일을 PNG로 변환하지 못했어요.';
     statusMessage.textContent = '다른 파일을 선택해 다시 시도해 주세요.';
   } finally {
