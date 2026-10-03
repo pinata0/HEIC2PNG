@@ -16,6 +16,15 @@ const removeButton = document.querySelector('#remove-button');
 
 let selectedFile = null;
 
+// 페이지가 모두 로드된 뒤 heic2any CDN 라이브러리가 전역 객체로 등록됐는지 확인합니다.
+window.addEventListener('load', () => {
+  if (typeof window.heic2any === 'function') {
+    console.info('heic2any 라이브러리가 정상적으로 로드되었습니다.');
+  } else {
+    console.error('heic2any 라이브러리를 로드하지 못했습니다.');
+  }
+});
+
 // 바이트 단위 파일 크기를 화면에 표시하기 쉬운 단위로 변환합니다.
 function formatFileSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
