@@ -15,6 +15,9 @@ const convertButton = document.querySelector('#convert-button');
 const removeButton = document.querySelector('#remove-button');
 
 let selectedFile = null;
+let convertedBlob = null;
+let objectUrl = null;
+let isConverting = false;
 
 // 페이지가 모두 로드된 뒤 heic2any CDN 라이브러리가 전역 객체로 등록됐는지 확인합니다.
 window.addEventListener('load', () => {
@@ -38,9 +41,18 @@ function isSupported(file) {
   return allowedExtensions.includes(extension);
 }
 
+// 이전 변환 결과와 다운로드용 Object URL을 정리합니다.
+function resetConversionState() {
+  if (objectUrl) URL.revokeObjectURL(objectUrl);
+  convertedBlob = null;
+  objectUrl = null;
+  isConverting = false;
+}
+
 // 선택된 파일과 화면 상태를 초기 상태로 되돌립니다.
 function resetFile() {
   selectedFile = null;
+  resetConversionState();
   fileInput.value = '';
   fileSummary.hidden = true;
   convertButton.disabled = true;
@@ -51,6 +63,7 @@ function resetFile() {
 function setFile(file) {
   errorMessage.textContent = '';
   if (!file) return;
+  resetConversionState();
   if (!isSupported(file)) {
     resetFile();
     errorMessage.textContent = 'HEIC 또는 HEIF 파일만 업로드할 수 있어요.';
