@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="HEIC 이미지를 PNG로 변환하는 간단한 브라우저 도구" />
+    <title>HEIC to PNG</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero" aria-labelledby="page-title">
+        <span class="eyebrow">HEIC IMAGE TOOL</span>
+        <h1 id="page-title">HEIC를 PNG로<br /><em>간단하게</em> 변환하세요.</h1>
+        <p class="intro">사진을 올리면 브라우저에서 PNG 변환을 준비합니다.<br />파일은 업로드되지 않고 현재 기기에서 처리됩니다.</p>
+      </section>
+
+      <section class="upload-card" aria-labelledby="upload-title">
+        <div class="card-heading">
+          <div>
+            <span class="step-label">01</span>
+            <h2 id="upload-title">파일 업로드</h2>
+          </div>
+          <span class="format-badge">HEIC · HEIF</span>
+        </div>
+
+        <div class="drop-zone" id="drop-zone" tabindex="0" role="button" aria-describedby="drop-hint">
+          <input id="file-input" type="file" accept=".heic,.heif,image/heic,image/heif" hidden />
+          <div class="upload-icon" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M24 31V9m0 0-8 8m8-8 8 8M10 27v8a4 4 0 0 0 4 4h20a4 4 0 0 0 4-4v-8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <p class="drop-title">파일을 여기에 끌어다 놓으세요</p>
+          <p class="drop-subtitle" id="drop-hint">또는 <button class="browse-button" id="browse-button" type="button">파일 선택</button> · 최대 20MB</p>
+        </div>
+
+        <p class="error-message" id="error-message" role="alert" aria-live="polite"></p>
+        <div class="file-summary" id="file-summary" hidden>
+          <div class="file-type" aria-hidden="true">HEIC</div>
+          <div class="file-details">
+            <strong id="file-name">파일명.heic</strong>
+            <span id="file-size">0 KB</span>
+          </div>
+          <button class="remove-button" id="remove-button" type="button" aria-label="선택한 파일 삭제">×</button>
+        </div>
+
+        <div class="action-row">
+          <p class="status-message" id="status-message" aria-live="polite">파일을 선택하면 변환할 수 있어요.</p>
+          <button class="convert-button" id="convert-button" type="button" disabled>PNG로 변환 <span aria-hidden="true">→</span></button>
+        </div>
+      </section>
+
+      <p class="privacy-note"><span aria-hidden="true">✦</span> 변환은 브라우저 안에서 처리됩니다. 파일을 서버에 저장하지 않습니다.</p>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
